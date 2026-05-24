@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>픽셀 야구 타이쿤 - Design Direction: 미니 월드</title>
+<style>
+  /* ===== Reset & Base ===== */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a2e;
+    color: #e0e0e0;
+    font-family: 'Courier New', monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  h1 { color: #f0c040; font-size: 20px; margin-bottom: 4px; }
+  .subtitle { color: #888; font-size: 13px; margin-bottom: 24px; }
+
+  /* ===== Phone Frame ===== */
+  .phone-container {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 32px;
+  }
+  .phone-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .phone-label {
+    color: #f0c040;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+  .phone-sublabel {
+    color: #888;
+    font-size: 11px;
+    margin-bottom: 12px;
+    text-align: center;
+    max-width: 280px;
+  }
+  .phone {
+    width: 280px;
+    height: 560px;
+    background: #0d1117;
+    border: 3px solid #333;
+    border-radius: 24px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+
+  /* ===== Status Bar ===== */
+  .status-bar {
+    height: 24px;
+    background: #161b22;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    font-size: 9px;
+    color: #8b949e;
+    border-bottom: 1px solid #21262d;
+  }
+
+  /* ===== Game Status ===== */
+  .game-status {
+    height: 28px;
+    background: #0d1117;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    font-size: 10px;
+    border-bottom: 2px solid #f0c040;
+  }
+  .game-status .season { color: #f0c040; font-weight: bold; }
+  .game-status .money { color: #4ec9b0; }
+  .game-status .rank { color: #e0e0e0; }
+  .menu-btn {
+    width: 22px;
+    height: 22px;
+    background: none;
+    border: 2px solid #f0c040;
+    border-radius: 4px;
+    color: #f0c040;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  /* ===== Main Area: Isometric Stadium ===== */
+  .stadium-area {
+    flex: 1;
+    background: linear-gradient(180deg, #1b3a4b 0%, #2d5a3f 40%, #3a7a4f 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .stadium-area.night {
+    background: linear-gradient(180deg, #0a0e1a 0%, #152230 40%, #1a3328 100%);
+  }
+
+  /* Clouds */
+  .cloud {
+    position: absolute;
+    font-size: 14px;
+    opacity: 0.5;
+    animation: float 8s ease-in-out infinite;
+  }
+  .cloud:nth-child(1) { top: 8px; left: 20px; animation-delay: 0s; }
+  .cloud:nth-child(2) { top: 16px; left: 140px; animation-delay: 3s; font-size: 10px; }
+  .cloud:nth-child(3) { top: 4px; left: 220px; animation-delay: 5s; }
+  @keyframes float {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(12px); }
+  }
+
+  /* Isometric diamond */
+  .iso-field {
+    position: absolute;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 160px;
+    height: 100px;
+  }
+  .diamond {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 64px;
+    height: 64px;
+    background: #8b6f3a;
+    border: 2px solid #a08040;
+  }
+  .diamond-inner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 32px;
+    height: 32px;
+    background: #5a8a50;
+    border: 1px solid #6a9a60;
+  }
+  .base {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: #fff;
+    transform: rotate(45deg);
+  }
+  .base.home { bottom: -4px; left: 50%; transform: translateX(-50%) rotate(45deg); background: #f0c040; }
+  .base.first { right: -4px; top: 50%; transform: translateY(-50%) rotate(45deg); }
+  .base.second { top: -4px; left: 50%; transform: translateX(-50%) rotate(45deg); }
+  .base.third { left: -4px; top: 50%; transform: translateY(-50%) rotate(45deg); }
+
+  /* Pixel characters */
+  .pixel-char {
+    position: absolute;
+    font-size: 12px;
+    animation: bounce 1.5s ease-in-out infinite;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+
+  /* Buildings */
+  .building {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 8px;
+    color: #ccc;
+  }
+  .building-icon { font-size: 18px; }
+  .building.locked .building-icon { filter: brightness(0.2); }
+  .building.locked::after {
+    content: '🔒';
+    font-size: 10px;
+    position: absolute;
+    top: 0;
+    right: -4px;
+  }
+
+  /* ===== Ticker ===== */
+  .ticker {
+    height: 44px;
+    background: #161b22;
+    border-top: 2px solid #30363d;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 6px;
+    font-size: 10px;
+  }
+  .ticker-score {
+    background: #21262d;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: bold;
+    flex-shrink: 0;
+  }
+  .ticker-score .team-a { color: #58a6ff; }
+  .ticker-score .score { color: #f0c040; font-size: 14px; }
+  .ticker-score .team-b { color: #f97583; }
+  .ticker-inning {
+    color: #8b949e;
+    font-size: 9px;
+    flex-shrink: 0;
+  }
+  .ticker-event {
+    color: #4ec9b0;
+    font-size: 9px;
+    overflow: hidden;
+    white-space: nowrap;
+    animation: scroll-text 10s linear infinite;
+  }
+  @keyframes scroll-text {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-200%); }
+  }
+
+  /* ===== Side Menu ===== */
+  .side-menu {
+    position: absolute;
+    top: 24px;
+    left: -200px;
+    width: 180px;
+    height: calc(100% - 24px);
+    background: rgba(13, 17, 23, 0.95);
+    border-right: 2px solid #f0c040;
+    z-index: 100;
+    transition: left 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 0;
+  }
+  .phone.menu-open .side-menu {
+    left: 0;
+  }
+  .side-menu-header {
+    padding: 8px 14px 12px;
+    border-bottom: 1px solid #21262d;
+    margin-bottom: 8px;
+  }
+  .side-menu-header .team-name {
+    color: #f0c040;
+    font-size: 13px;
+    font-weight: bold;
+  }
+  .side-menu-header .team-sub {
+    color: #8b949e;
+    font-size: 9px;
+    margin-top: 2px;
+  }
+  .side-menu-item {
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: #c9d1d9;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .side-menu-item:hover {
+    background: #21262d;
+  }
+  .side-menu-item .icon { font-size: 16px; width: 24px; text-align: center; }
+  .side-menu-item.active {
+    color: #f0c040;
+    background: rgba(240, 192, 64, 0.1);
+    border-left: 3px solid #f0c040;
+  }
+  .side-menu-item .badge {
+    margin-left: auto;
+    background: #f97583;
+    color: #fff;
+    font-size: 8px;
+    padding: 1px 5px;
+    border-radius: 8px;
+  }
+  .side-menu-divider {
+    height: 1px;
+    background: #21262d;
+    margin: 8px 14px;
+  }
+  .menu-overlay {
+    position: absolute;
+    top: 24px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 99;
+    display: none;
+  }
+  .phone.menu-open .menu-overlay {
+    display: block;
+  }
+
+  /* ===== Overlay Panel ===== */
+  .overlay-panel {
+    position: absolute;
+    bottom: 44px;
+    left: 8px;
+    right: 8px;
+    background: rgba(13, 17, 23, 0.92);
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .overlay-panel-title {
+    color: #f0c040;
+    font-size: 11px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .close-btn {
+    color: #8b949e;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  /* Player card */
+  .player-card {
+    display: flex;
+    gap: 8px;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 8px;
+    margin-bottom: 6px;
+    align-items: center;
+  }
+  .player-avatar {
+    width: 32px;
+    height: 32px;
+    background: #21262d;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .player-info { flex: 1; }
+  .player-name { font-size: 11px; font-weight: bold; color: #e0e0e0; }
+  .player-pos { font-size: 8px; color: #8b949e; }
+  .player-stats {
+    display: flex;
+    gap: 4px;
+    margin-top: 3px;
+  }
+  .stat-bar {
+    width: 32px;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .stat-fill {
+    height: 100%;
+    border-radius: 2px;
+  }
+  .stat-fill.high { background: #4ec9b0; }
+  .stat-fill.mid { background: #f0c040; }
+  .stat-fill.low { background: #f97583; }
+  .player-grade {
+    font-size: 14px;
+    font-weight: bold;
+    color: #f0c040;
+  }
+
+  /* Mystery card */
+  .player-card.mystery {
+    border-style: dashed;
+    border-color: #444;
+  }
+  .player-avatar.mystery {
+    background: #111;
+    color: #444;
+    font-size: 14px;
+  }
+  .player-name.mystery { color: #555; }
+
+  /* ===== Popup ===== */
+  .popup-overlay {
+    position: absolute;
+    top: 24px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .popup {
+    background: #161b22;
+    border: 2px solid #f97583;
+    border-radius: 8px;
+    padding: 16px;
+    width: 240px;
+    text-align: center;
+  }
+  .popup-icon { font-size: 28px; margin-bottom: 8px; }
+  .popup-title {
+    color: #f97583;
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 6px;
+  }
+  .popup-desc {
+    color: #c9d1d9;
+    font-size: 10px;
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+  .popup-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .popup-choice {
+    background: #21262d;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 8px;
+    color: #e0e0e0;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .popup-choice:hover {
+    border-color: #f0c040;
+    background: #2a2f38;
+  }
+  .popup-choice .label { font-weight: bold; }
+  .popup-choice .hint { color: #8b949e; font-size: 8px; margin-top: 2px; }
+
+  /* ===== Achievement Banner ===== */
+  .achievement-banner {
+    position: absolute;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #2d1f6b, #1a1145);
+    border: 2px solid #f0c040;
+    border-radius: 8px;
+    padding: 10px 16px;
+    z-index: 150;
+    text-align: center;
+    animation: achievement-pop 0.5s ease-out;
+    box-shadow: 0 0 20px rgba(240, 192, 64, 0.3);
+    width: 220px;
+  }
+  @keyframes achievement-pop {
+    0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
+    70% { transform: translateX(-50%) scale(1.05); }
+    100% { transform: translateX(-50%) scale(1); opacity: 1; }
+  }
+  .achievement-banner .star { font-size: 20px; }
+  .achievement-banner .title {
+    color: #f0c040;
+    font-size: 10px;
+    font-weight: bold;
+    margin: 4px 0 2px;
+  }
+  .achievement-banner .desc {
+    color: #c9d1d9;
+    font-size: 9px;
+  }
+
+  /* ===== Collection Screen ===== */
+  .collection-screen {
+    position: absolute;
+    top: 52px;
+    left: 0;
+    right: 0;
+    bottom: 44px;
+    background: #0d1117;
+    padding: 8px;
+    overflow-y: auto;
+  }
+  .collection-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+  .collection-tab {
+    flex: 1;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 6px;
+    text-align: center;
+    font-size: 10px;
+    color: #8b949e;
+    cursor: pointer;
+  }
+  .collection-tab.active {
+    background: #21262d;
+    color: #f0c040;
+    border-color: #f0c040;
+  }
+  .collection-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .collection-item {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 6px;
+    text-align: center;
+    font-size: 8px;
+    color: #8b949e;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+  }
+  .collection-item .icon { font-size: 18px; }
+  .collection-item.locked {
+    border-style: dashed;
+    border-color: #333;
+  }
+  .collection-item.locked .icon { filter: brightness(0) invert(0.2); }
+  .collection-item.new { border-color: #f0c040; position: relative; }
+  .collection-item.new::after {
+    content: 'NEW';
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #f97583;
+    color: #fff;
+    font-size: 6px;
+    padding: 1px 3px;
+    border-radius: 3px;
+    font-weight: bold;
+  }
+
+  /* ===== Season Report ===== */
+  .report-screen {
+    position: absolute;
+    top: 52px;
+    left: 0;
+    right: 0;
+    bottom: 44px;
+    background: #0d1117;
+    padding: 12px;
+    overflow-y: auto;
+  }
+  .report-header {
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .report-header .grade {
+    font-size: 36px;
+    font-weight: bold;
+    color: #f0c040;
+  }
+  .report-header .season-label {
+    font-size: 11px;
+    color: #8b949e;
+    margin-top: 2px;
+  }
+  .report-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid #161b22;
+    font-size: 10px;
+  }
+  .report-row .label { color: #8b949e; }
+  .report-row .value { color: #e0e0e0; font-weight: bold; }
+  .report-row .value.up { color: #4ec9b0; }
+  .report-row .value.down { color: #f97583; }
+  .report-highlight {
+    background: rgba(240, 192, 64, 0.1);
+    border: 1px solid rgba(240, 192, 64, 0.3);
+    border-radius: 6px;
+    padding: 8px;
+    margin-top: 10px;
+    text-align: center;
+  }
+  .report-highlight .title {
+    color: #f0c040;
+    font-size: 10px;
+    font-weight: bold;
+    margin-bottom: 4px;
+  }
+  .report-highlight .desc {
+    color: #c9d1d9;
+    font-size: 9px;
+  }
+
+  /* ===== News Screen ===== */
+  .news-item {
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    border-bottom: 1px solid #161b22;
+    align-items: flex-start;
+  }
+  .news-thumb {
+    width: 40px;
+    height: 40px;
+    background: #21262d;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .news-content { flex: 1; }
+  .news-headline {
+    font-size: 11px;
+    font-weight: bold;
+    color: #e0e0e0;
+    margin-bottom: 2px;
+  }
+  .news-summary {
+    font-size: 9px;
+    color: #8b949e;
+    line-height: 1.4;
+  }
+  .news-date {
+    font-size: 8px;
+    color: #484f58;
+    margin-top: 3px;
+  }
+
+  /* ===== Night mode stars ===== */
+  .star-field {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+  }
+  .star-dot {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle 2s ease-in-out infinite;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+
+  /* ===== Description Section ===== */
+  .section {
+    max-width: 900px;
+    width: 100%;
+    margin: 32px 0 16px;
+  }
+  .section h2 {
+    color: #f0c040;
+    font-size: 16px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #30363d;
+    padding-bottom: 6px;
+  }
+  .section p, .section li {
+    color: #c9d1d9;
+    font-size: 12px;
+    line-height: 1.8;
+  }
+  .section ul {
+    padding-left: 20px;
+  }
+
+  .note-box {
+    background: rgba(240, 192, 64, 0.08);
+    border: 1px solid rgba(240, 192, 64, 0.25);
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin: 12px 0;
+    font-size: 11px;
+    color: #c9d1d9;
+    line-height: 1.7;
+  }
+  .note-box strong { color: #f0c040; }
+
+  .comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 11px;
+  }
+  .comparison-table th {
+    background: #161b22;
+    color: #f0c040;
+    padding: 8px;
+    text-align: left;
+    border: 1px solid #21262d;
+  }
+  .comparison-table td {
+    padding: 8px;
+    border: 1px solid #21262d;
+    color: #c9d1d9;
+  }
+
+  /* ===== Lights on field ===== */
+  .field-light {
+    position: absolute;
+    width: 4px;
+    height: 16px;
+    background: #666;
+  }
+  .field-light::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -2px;
+    width: 8px;
+    height: 4px;
+    background: #ff8;
+    border-radius: 2px;
+    box-shadow: 0 0 6px rgba(255,255,136,0.5);
+  }
+
+  /* Trees & decorations */
+  .deco { position: absolute; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<h1>픽셀 야구 타이쿤 — Design Direction</h1>
+<p class="subtitle">방향 2: "미니 월드" + 사이드 메뉴 네비게이션</p>
+
+<!-- ===== MOCKUP ROW 1 ===== -->
+<div class="phone-container">
+
+  <!-- Phone 1: Main Stadium (Day) + Side Menu -->
+  <div class="phone-wrapper">
+    <div class="phone-label">① 메인 화면 (낮 경기) + 사이드 메뉴</div>
+    <div class="phone-sublabel">메뉴 버튼 → 사이드 메뉴 오픈. 구장 배경이 항상 보임</div>
+    <div class="phone menu-open" onclick="this.classList.toggle('menu-open')">
+      <!-- Status bar -->
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>📶 🔋 92%</span>
+      </div>
+      <!-- Game status -->
+      <div class="game-status">
+        <div class="menu-btn">☰</div>
+        <span class="season">⭐ 3시즌</span>
+        <span class="money">💰 2.4억</span>
+        <span class="rank">📊 4위</span>
+      </div>
+      <!-- Stadium -->
+      <div class="stadium-area" style="height: 442px;">
+        <div class="cloud">☁️</div>
+        <div class="cloud">☁</div>
+        <div class="cloud">☁️</div>
+
+        <!-- Iso field -->
+        <div class="iso-field">
+          <div class="diamond">
+            <div class="diamond-inner"></div>
+            <div class="base home"></div>
+            <div class="base first"></div>
+            <div class="base second"></div>
+            <div class="base third"></div>
+          </div>
+        </div>
+
+        <!-- Characters -->
+        <div class="pixel-char" style="top:130px; left:90px; animation-delay:0.2s">🏃</div>
+        <div class="pixel-char" style="top:125px; left:160px; animation-delay:0.7s">🧑</div>
+        <div class="pixel-char" style="top:148px; left:130px; animation-delay:0.4s">⚾</div>
+
+        <!-- Buildings -->
+        <div class="building" style="bottom:100px; left:15px;">
+          <span class="building-icon">🏋️</span>
+          <span>훈련장</span>
+        </div>
+        <div class="building" style="bottom:60px; left:15px;">
+          <span class="building-icon">🏥</span>
+          <span>의무실</span>
+        </div>
+        <div class="building" style="bottom:100px; right:15px;">
+          <span class="building-icon">🏪</span>
+          <span>매점</span>
+        </div>
+        <div class="building locked" style="bottom:60px; right:15px;">
+          <span class="building-icon">🎪</span>
+          <span>팬존</span>
+        </div>
+        <div class="building locked" style="bottom:20px; left:60px;">
+          <span class="building-icon">🏫</span>
+          <span>아카데미</span>
+        </div>
+
+        <!-- Trees -->
+        <div class="deco" style="bottom:15px; right:60px;">🌳</div>
+        <div class="deco" style="bottom:10px; right:80px;">🌲</div>
+
+        <!-- Field lights -->
+        <div class="field-light" style="top:40px; left:40px;"></div>
+        <div class="field-light" style="top:40px; right:40px;"></div>
+      </div>
+
+      <!-- Ticker -->
+      <div class="ticker">
+        <div class="ticker-score">
+          <span class="team-a">서울</span>
+          <span class="score">2 : 1</span>
+          <span class="team-b">부산</span>
+        </div>
+        <div class="ticker-inning">3회초</div>
+        <div class="ticker-event">▶ 김민수 좌전안타! 1루에서 3루까지 진루!</div>
+      </div>
+
+      <!-- Side Menu -->
+      <div class="menu-overlay" onclick="this.parentElement.classList.remove('menu-open')"></div>
+      <div class="side-menu">
+        <div class="side-menu-header">
+          <div class="team-name">⚾ 서울 스타즈</div>
+          <div class="team-sub">3시즌 · 정규시즌 진행중</div>
+        </div>
+        <div class="side-menu-item active">
+          <span class="icon">🏟️</span> 구장
+        </div>
+        <div class="side-menu-item">
+          <span class="icon">👥</span> 선수단
+        </div>
+        <div class="side-menu-item">
+          <span class="icon">💰</span> 재정
+        </div>
+        <div class="side-menu-item">
+          <span class="icon">📋</span> 로스터
+        </div>
+        <div class="side-menu-divider"></div>
+        <div class="side-menu-item">
+          <span class="icon">🏆</span> 컬렉션
+          <span class="badge">2</span>
+        </div>
+        <div class="side-menu-item">
+          <span class="icon">📰</span> 뉴스
+          <span class="badge">3</span>
+        </div>
+        <div class="side-menu-divider"></div>
+        <div class="side-menu-item">
+          <span class="icon">📊</span> 순위표
+        </div>
+        <div class="side-menu-item">
+          <span class="icon">⚙️</span> 설정
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phone 2: Night game + Player overlay -->
+  <div class="phone-wrapper">
+    <div class="phone-label">② 야간 경기 + 선수 오버레이</div>
+    <div class="phone-sublabel">사이드 메뉴에서 "선수단" 선택 → 구장 위 오버레이 패널</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span>21:30</span>
+        <span>📶 🔋 67%</span>
+      </div>
+      <div class="game-status">
+        <div class="menu-btn">☰</div>
+        <span class="season">⭐ 3시즌</span>
+        <span class="money">💰 2.4억</span>
+        <span class="rank">📊 4위</span>
+      </div>
+      <div class="stadium-area night" style="height: 442px;">
+        <!-- Stars -->
+        <div class="star-field">
+          <div class="star-dot" style="top:8px; left:30px; animation-delay:0s;"></div>
+          <div class="star-dot" style="top:15px; left:80px; animation-delay:0.5s;"></div>
+          <div class="star-dot" style="top:5px; left:150px; animation-delay:1s;"></div>
+          <div class="star-dot" style="top:20px; left:200px; animation-delay:1.5s;"></div>
+          <div class="star-dot" style="top:10px; left:250px; animation-delay:0.8s;"></div>
+        </div>
+
+        <div class="iso-field">
+          <div class="diamond">
+            <div class="diamond-inner"></div>
+            <div class="base home"></div>
+            <div class="base first"></div>
+            <div class="base second"></div>
+            <div class="base third"></div>
+          </div>
+        </div>
+
+        <div class="pixel-char" style="top:130px; left:100px; animation-delay:0.3s">🏃</div>
+        <div class="pixel-char" style="top:140px; left:140px; animation-delay:0.6s">⚾</div>
+
+        <div class="field-light" style="top:40px; left:40px;"></div>
+        <div class="field-light" style="top:40px; right:40px;"></div>
+
+        <!-- Overlay panel -->
+        <div class="overlay-panel" style="bottom: 0; border-radius: 8px 8px 0 0; max-height: 240px;">
+          <div class="overlay-panel-title">
+            👥 선수단 <span class="close-btn">✕</span>
+          </div>
+          <div class="player-card">
+            <div class="player-avatar">⚾</div>
+            <div class="player-info">
+              <div class="player-name">김민수</div>
+              <div class="player-pos">투수 · 에이스 · 당신이 발탁한 선수</div>
+              <div class="player-stats">
+                <div class="stat-bar"><div class="stat-fill high" style="width:85%"></div></div>
+                <div class="stat-bar"><div class="stat-fill high" style="width:78%"></div></div>
+                <div class="stat-bar"><div class="stat-fill mid" style="width:60%"></div></div>
+              </div>
+            </div>
+            <div class="player-grade">A</div>
+          </div>
+          <div class="player-card">
+            <div class="player-avatar">🏏</div>
+            <div class="player-info">
+              <div class="player-name">박지훈</div>
+              <div class="player-pos">유격수 · 주전 · FA 영입</div>
+              <div class="player-stats">
+                <div class="stat-bar"><div class="stat-fill high" style="width:72%"></div></div>
+                <div class="stat-bar"><div class="stat-fill mid" style="width:55%"></div></div>
+                <div class="stat-bar"><div class="stat-fill high" style="width:80%"></div></div>
+              </div>
+            </div>
+            <div class="player-grade">B+</div>
+          </div>
+          <div class="player-card mystery">
+            <div class="player-avatar mystery">???</div>
+            <div class="player-info">
+              <div class="player-name mystery">??? (신인 드래프트 3순위)</div>
+              <div class="player-pos">포지션 미확인</div>
+              <div class="player-stats">
+                <div class="stat-bar"><div class="stat-fill" style="width:0%"></div></div>
+                <div class="stat-bar"><div class="stat-fill" style="width:0%"></div></div>
+                <div class="stat-bar"><div class="stat-fill" style="width:0%"></div></div>
+              </div>
+            </div>
+            <div class="player-grade" style="color:#555">?</div>
+          </div>
+        </div>
+      </div>
+      <div class="ticker">
+        <div class="ticker-score">
+          <span class="team-a">서울</span>
+          <span class="score">5 : 3</span>
+          <span class="team-b">대전</span>
+        </div>
+        <div class="ticker-inning">7회말</div>
+        <div class="ticker-event">▶ 김민수 8회 등판 준비중...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phone 3: Emergency Popup -->
+  <div class="phone-wrapper">
+    <div class="phone-label">③ 긴급 팝업 (9회말 동점)</div>
+    <div class="phone-sublabel">"구단주님, 결정이 필요합니다!" — 핵심 긴장감 순간</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span>22:15</span>
+        <span>📶 🔋 54%</span>
+      </div>
+      <div class="game-status">
+        <div class="menu-btn">☰</div>
+        <span class="season">⭐ 3시즌</span>
+        <span class="money">💰 2.4억</span>
+        <span class="rank">📊 4위</span>
+      </div>
+      <div class="stadium-area night" style="height: 442px;">
+        <div class="star-field">
+          <div class="star-dot" style="top:8px; left:30px;"></div>
+          <div class="star-dot" style="top:15px; left:120px; animation-delay:0.5s;"></div>
+          <div class="star-dot" style="top:5px; left:200px; animation-delay:1s;"></div>
+        </div>
+        <div class="iso-field">
+          <div class="diamond">
+            <div class="diamond-inner"></div>
+            <div class="base home"></div>
+            <div class="base first"></div>
+            <div class="base second"></div>
+            <div class="base third"></div>
+          </div>
+        </div>
+        <div class="field-light" style="top:40px; left:40px;"></div>
+        <div class="field-light" style="top:40px; right:40px;"></div>
+
+        <!-- Emergency popup -->
+        <div class="popup-overlay">
+          <div class="popup">
+            <div class="popup-icon">🚨</div>
+            <div class="popup-title">구단주님, 결정이 필요합니다!</div>
+            <div class="popup-desc">
+              9회말 동점 · 2사 만루<br>
+              감독이 투수 교체를 건의합니다
+            </div>
+            <div class="popup-choices">
+              <div class="popup-choice">
+                <div class="label">✅ 교체 승인</div>
+                <div class="hint">마무리 이정호 투입 (컨디션 ◯)</div>
+              </div>
+              <div class="popup-choice">
+                <div class="label">❌ 속행 지시</div>
+                <div class="hint">김민수 계속 등판 (컨디션 △, 127구)</div>
+              </div>
+              <div class="popup-choice">
+                <div class="label">🤔 감독에게 위임</div>
+                <div class="hint">감독 성향대로 결정</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ticker">
+        <div class="ticker-score">
+          <span class="team-a">서울</span>
+          <span class="score">4 : 4</span>
+          <span class="team-b">인천</span>
+        </div>
+        <div class="ticker-inning" style="color:#f97583; font-weight:bold;">9회말</div>
+        <div class="ticker-event" style="color:#f97583;">⚠ 긴급! 2사 만루!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MOCKUP ROW 2 ===== -->
+<div class="phone-container">
+
+  <!-- Phone 4: Achievement unlock -->
+  <div class="phone-wrapper">
+    <div class="phone-label">④ 업적 해금 배너</div>
+    <div class="phone-sublabel">숨겨진 조건 달성 시 팝업 — 놀라움과 기쁨</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span>15:20</span>
+        <span>📶 🔋 78%</span>
+      </div>
+      <div class="game-status">
+        <div class="menu-btn">☰</div>
+        <span class="season">⭐ 5시즌</span>
+        <span class="money">💰 8.1억</span>
+        <span class="rank">📊 2위</span>
+      </div>
+      <div class="stadium-area" style="height: 442px;">
+        <div class="cloud">☁️</div>
+        <div class="cloud">☁</div>
+        <div class="iso-field">
+          <div class="diamond">
+            <div class="diamond-inner"></div>
+            <div class="base home"></div>
+            <div class="base first"></div>
+            <div class="base second"></div>
+            <div class="base third"></div>
+          </div>
+        </div>
+
+        <div class="building" style="bottom:100px; left:15px;">
+          <span class="building-icon">🏋️</span><span>훈련장</span>
+        </div>
+        <div class="building" style="bottom:60px; left:15px;">
+          <span class="building-icon">🏥</span><span>의무실</span>
+        </div>
+        <div class="building" style="bottom:100px; right:15px;">
+          <span class="building-icon">🏪</span><span>매점</span>
+        </div>
+        <div class="building" style="bottom:60px; right:15px;">
+          <span class="building-icon">🎪</span><span>팬존</span>
+        </div>
+        <div class="building" style="bottom:20px; left:60px;">
+          <span class="building-icon">🏫</span><span>아카데미</span>
+        </div>
+
+        <!-- Achievement banner -->
+        <div class="achievement-banner">
+          <div class="star">🏆</div>
+          <div class="title">업적 해금: 철벽 수비</div>
+          <div class="desc">한 시즌 팀 수비율 .985 이상 달성!</div>
+        </div>
+      </div>
+      <div class="ticker">
+        <div class="ticker-score">
+          <span class="team-a">서울</span>
+          <span class="score">3 : 0</span>
+          <span class="team-b">광주</span>
+        </div>
+        <div class="ticker-inning">경기종료</div>
+        <div class="ticker-event">▶ 완봉승! 김민수 시즌 12승 달성!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phone 5: Collection Screen -->
+  <div class="phone-wrapper">
+    <div class="phone-label">⑤ 컬렉션 화면 (업적)</div>
+    <div class="phone-sublabel">2축 구조: 선수 도감 + 업적 컬렉션</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span>16:00</span>
+        <span>📶 🔋 75%</span>
+      </div>
+      <div class="game-status">
+        <div class="menu-btn">☰</div>
+        <span class="season">⭐ 5시즌</span>
+        <span class="money">💰 8.1억</span>
+        <span class="rank">📊 2위</span>
+      </div>
+      <!-- Collection full screen -->
+      <div style="height: 442px; position: relative;">
+        <div class="collection-screen" style="top:0; bottom:0;">
+          <div class="collection-tabs">
+            <div class="collection-tab">📋 선수 도감</div>
+            <div class="collection-tab active">🏆 업적</div>
+          </div>
+
+          <div style="font-size:9px; color:#8b949e; margin-bottom:8px; text-align:right;">
+            해금: 12 / 48 (숨겨진 업적 36개)
+          </div>
+
+          <div class="collection-grid">
+            <div class="collection-item new">
+              <span class="icon">🛡️</span>
+              <span>철벽 수비</span>
+            </div>
+            <div class="collection-item">
+              <span class="icon">⚾</span>
+              <span>첫 승리</span>
+            </div>
+            <div class="collection-item">
+              <span class="icon">👑</span>
+              <span>신인왕</span>
+            </div>
+            <div class="collection-item">
+              <span class="icon">💰</span>
+              <span>흑자 경영</span>
+            </div>
+            <div class="collection-item">
+              <span class="icon">🏟️</span>
+              <span>구장 확장</span>
+            </div>
+            <div class="collection-item">
+              <span class="icon">📈</span>
+              <span>순위 상승</span>
+            </div>
+            <div class="collection-item">
+              <span class="icon">🤝</span>
+              <span>FA 성공</span>
+            </div>
+            <div class="collection-item">
+              <span class="icon">🔥</span>
+              <span>5연승</span>
+            </div>
+            <div class="collection-item">
+              <span class="icon">👀</span>
+              <span>안목의 증명</span>
+            </div>
+            <div class="collection-item">
+              <span class="icon">📰</span>
+              <span>화제의 팀</span>
+            </div>
+            <div class="collection-item">
+              <span class="icon">🎓</span>
+              <span>아카데미 1기</span>
+            </div>
+            <div class="collection-item">
+              <span class="icon">🏪</span>
+              <span>장사의 신</span>
+            </div>
+            <div class="collection-item locked">
+              <span class="icon">❓</span>
+              <span>???</span>
+            </div>
+            <div class="collection-item locked">
+              <span class="icon">❓</span>
+              <span>???</span>
+            </div>
+            <div class="collection-item locked">
+              <span class="icon">❓</span>
+              <span>???</span>
+            </div>
+            <div class="collection-item locked">
+              <span class="icon">❓</span>
+              <span>???</span>
+            </div>
+            <div class="collection-item locked">
+              <span class="icon">❓</span>
+              <span>???</span>
+            </div>
+            <div class="collection-item locked">
+              <span class="icon">❓</span>
+              <span>???</span>
+            </div>
+            <div class="collection-item locked">
+              <span class="icon">❓</span>
+              <span>???</span>
+            </div>
+            <div class="collection-item locked">
+              <span class="icon">❓</span>
+              <span>???</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ticker">
+        <div class="ticker-score">
+          <span class="team-a">서울</span>
+          <span class="score">3 : 0</span>
+          <span class="team-b">광주</span>
+        </div>
+        <div class="ticker-inning">경기종료</div>
+        <div class="ticker-event">▶ 컬렉션을 확인해보세요!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phone 6: Season Report -->
+  <div class="phone-wrapper">
+    <div class="phone-label">⑥ 시즌 리포트</div>
+    <div class="phone-sublabel">시즌 종료 → 등급 평가 → 다음 시즌 동기부여</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span>20:00</span>
+        <span>📶 🔋 60%</span>
+      </div>
+      <div class="game-status">
+        <div class="menu-btn">☰</div>
+        <span class="season">⭐ 5시즌 종료</span>
+        <span class="money">💰 8.1억</span>
+        <span class="rank">📊 2위</span>
+      </div>
+      <div style="height: 442px; position: relative;">
+        <div class="report-screen" style="top:0; bottom:0;">
+          <div class="report-header">
+            <div class="grade">A</div>
+            <div class="season-label">5시즌 종합 평가</div>
+          </div>
+
+          <div class="report-row">
+            <span class="label">최종 순위</span>
+            <span class="value up">2위 (▲2)</span>
+          </div>
+          <div class="report-row">
+            <span class="label">시즌 성적</span>
+            <span class="value">82승 62패</span>
+          </div>
+          <div class="report-row">
+            <span class="label">관중 동원</span>
+            <span class="value up">48만명 (▲12만)</span>
+          </div>
+          <div class="report-row">
+            <span class="label">재정 상태</span>
+            <span class="value up">흑자 2.3억</span>
+          </div>
+          <div class="report-row">
+            <span class="label">신인 발굴</span>
+            <span class="value">A (신인왕 배출!)</span>
+          </div>
+          <div class="report-row">
+            <span class="label">시설 수준</span>
+            <span class="value">B+ (7/12 해금)</span>
+          </div>
+          <div class="report-row">
+            <span class="label">새 업적</span>
+            <span class="value" style="color:#f0c040;">+3개 해금!</span>
+          </div>
+
+          <div class="report-highlight">
+            <div class="title">⭐ 시즌 MVP: 김민수</div>
+            <div class="desc">당신이 1순위로 발탁한 선수가<br>시즌 18승으로 팀을 이끌었습니다!</div>
+          </div>
+
+          <div class="report-highlight" style="border-color: rgba(78,201,176,0.3); background: rgba(78,201,176,0.08); margin-top: 8px;">
+            <div class="title" style="color:#4ec9b0;">📊 레거시 점수: 1,240 (+380)</div>
+            <div class="desc">역대 최고 상승폭! 명문 구단의 길에 들어섰습니다</div>
+          </div>
+        </div>
+      </div>
+      <div class="ticker" style="background:#1a1a2e; border-color:#f0c040;">
+        <div style="text-align:center; width:100%; color:#f0c040; font-size:11px; font-weight:bold;">
+          📋 시즌 리포트 공유하기 &nbsp;|&nbsp; ▶ 다음 시즌
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DESCRIPTION ===== -->
+<div class="section">
+  <h2>디자인 방향 요약: "미니 월드" + 사이드 메뉴</h2>
+
+  <div class="note-box">
+    <strong>핵심 컨셉:</strong> 아이소메트릭 구장을 중심으로 한 미니어처 세계. 메뉴 버튼(☰)을 누르면 왼쪽에서 사이드 메뉴가 슬라이드 인되며, 구장 배경은 항상 메인 화면에 유지된다. 탭 바를 제거하여 메인 영역을 최대한 넓게 확보하고, 구장 성장의 시각적 보상을 극대화한다.
+  </div>
+
+  <table class="comparison-table">
+    <tr>
+      <th>요소</th>
+      <th>설계 방향</th>
+    </tr>
+    <tr>
+      <td><strong>네비게이션</strong></td>
+      <td>좌측 사이드 메뉴 (☰ 버튼 토글). 메뉴 밖 영역 터치로 닫기. 자주 쓰는 기능에 뱃지 표시</td>
+    </tr>
+    <tr>
+      <td><strong>메인 화면</strong></td>
+      <td>아이소메트릭 구장 뷰 — 캐릭터가 돌아다니고, 시설이 해금되면 새 건물과 활동 등장</td>
+    </tr>
+    <tr>
+      <td><strong>경영 UI</strong></td>
+      <td>사이드 메뉴에서 기능 선택 → 구장 위 반투명 오버레이 패널로 표시</td>
+    </tr>
+    <tr>
+      <td><strong>티커</strong></td>
+      <td>하단 고정. 스코어보드 스타일. 경기 진행 중 항상 표시</td>
+    </tr>
+    <tr>
+      <td><strong>긴급 팝업</strong></td>
+      <td>전체 화면 어둡게 + 중앙 팝업. 2~3개 선택지</td>
+    </tr>
+    <tr>
+      <td><strong>컬렉션</strong></td>
+      <td>사이드 메뉴에서 진입. 전체 화면 전환. 선수 도감/업적 하위 탭</td>
+    </tr>
+    <tr>
+      <td><strong>낮/밤</strong></td>
+      <td>경기 시간대에 따라 팔레트 시프트 (하늘색 변화, 조명 효과)</td>
+    </tr>
+  </table>
+
+  <div class="note-box">
+    <strong>사이드 메뉴의 장점:</strong><br>
+    • 메인 영역을 최대로 활용 — 구장 성장이 한눈에 보임<br>
+    • 메뉴 항목을 자유롭게 확장 가능 (아이콘+텍스트 라벨)<br>
+    • 새 알림이 있는 메뉴에 뱃지 표시<br>
+    • 왼손/오른손 모두 ☰ 버튼 접근 가능 (상단 좌측 배치)<br><br>
+    <strong>주의사항:</strong><br>
+    • 사이드 메뉴 오픈은 반드시 ☰ 버튼 또는 좌측 스와이프로 제한<br>
+    • 경기 중 핵심 인터랙션(긴급 팝업 응답)은 메뉴 없이 바로 접근<br>
+    • 메뉴 오픈 시 티커는 계속 표시 (경기 놓치지 않도록)
+  </div>
+</div>
+
+<div style="text-align:center; color:#484f58; font-size:10px; padding: 20px;">
+  픽셀 야구 타이쿤 — UX Design Direction Mockup · 2026-05-24
+</div>
+
+</body>
+</html>
