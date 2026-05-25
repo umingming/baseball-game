@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "README.md",
+                "file": "docs/prd.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "README"
+              "title": "prd"
             }
           }
         ]
@@ -183,14 +183,16 @@
       "bases:새 베이스 생성하기": false
     }
   },
-  "active": "01745a2dc60b9834",
+  "active": "7fd728cbb52d385e",
   "lastOpenFiles": [
+    "docs/gdd/index.md",
+    "docs/gdd",
+    "README.md",
     "docs/ux-design-directions.html",
     "docs/wireframes.html",
     "docs/ux-design-specification.md",
     "docs/prd-validation-report.md",
     "docs/product-brief.md",
-    "README.md",
     "docs/장비명세서.docx",
     "docs/prd.md",
     "docs/brainstorming/brainstorming-session-2026-05-06-0830.md",
