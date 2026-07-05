@@ -32,20 +32,28 @@
 
 ## Current Status
 
-현재 저장소는 아이디어 정리와 기획 탐색 단계입니다.
+기획 문서화 단계 완료. 현재 기술 스택 결정 및 구현 준비 단계입니다.
 
-- 브레인스토밍 결과 문서 작성 완료
-- 프로젝트 작업 환경 초기 설정 완료
-- 제품 브리프, PRD, UX 설계는 다음 단계로 예정
+- [x] 브레인스토밍 및 아이디어 탐색
+- [x] Product Brief 작성 완료
+- [x] PRD(제품 요구사항 문서) 작성 완료
+- [x] UX 설계 명세서 작성 완료
+- [x] GDD(게임 디자인 문서) 초안 작성 완료
+- [ ] 기술 스택 결정
+- [ ] 프로토타입 구현
 
 ## Docs
 
-- 브레인스토밍 결과: [docs/brainstorming/brainstorming-session-2026-05-06-0830.md](/Users/youme/git/baseball-game/docs/brainstorming/brainstorming-session-2026-05-06-0830.md)
-- BMAD 설정: [_bmad/core/config.yaml](/Users/youme/git/baseball-game/_bmad/core/config.yaml)
+- Product Brief: [docs/product-brief.md](docs/product-brief.md)
+- PRD: [docs/prd.md](docs/prd.md)
+- UX 설계 명세서: [docs/ux-design-specification.md](docs/ux-design-specification.md)
+- UX 설계 방향: [docs/ux-design-directions.html](docs/ux-design-directions.html)
+- GDD: [docs/gdd/index.md](docs/gdd/index.md)
+- PRD 검증 리포트: [docs/prd-validation-report.md](docs/prd-validation-report.md)
+- 브레인스토밍 결과: [docs/brainstorming/brainstorming-session-2026-05-06-0830.md](docs/brainstorming/brainstorming-session-2026-05-06-0830.md)
 
 ## Next Steps
 
-1. Product Brief 정리
-2. 핵심 시스템 PRD 작성
-3. 주요 화면 UX 와이어프레임 설계
-4. 구현용 기술 스택 결정
+1. 구현용 기술 스택 결정
+2. 프로토타입 개발 환경 셋업
+3. 핵심 게임 루프 구현
